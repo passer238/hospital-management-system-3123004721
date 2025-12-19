@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold mb-0 text-primary"><i class="bi bi-people me-2"></i>病人管理</h2>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-warning-subtle text-warning-emphasis fs-6 rounded-pill px-3">{{ patients|length }}
+            位在案病人</span>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-plus-circle me-2"></i>新增病人</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('patients') }}">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="p_atient_id" id="new_p_id" placeholder="病人身份证号"
+                            required>
+                        <label for="new_p_id">病人身份证号</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="p_name" id="new_p_name" placeholder="姓名" required>
+                        <label for="new_p_name">姓名</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" name="p_age" id="new_p_age" placeholder="年龄" required>
+                        <label for="new_p_age">年龄</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <select class="form-select" name="p_sex" id="new_p_sex" required>
+                            <option value="" selected disabled>选择</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                        <label for="new_p_sex">性别</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="p_tel" id="new_p_tel" placeholder="电话" required>
+                        <label for="new_p_tel">电话</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="p_inf" id="new_p_inf" placeholder="病例信息" required>
+                        <label for="new_p_inf">病例信息 (过敏史等)</label>
+                    </div>
+                </div>
+            </div>
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-person-plus me-1"></i>添加病人</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white pt-4 pb-2">
+        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-list-ul me-2"></i>病人列表</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>身份证号</th>
+                        <th>姓名</th>
+                        <th>年龄</th>
+                        <th>性别</th>
+                        <th>电话</th>
+                        <th>病例信息</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in patients %}
+                    <tr>
+                        <td class="font-monospace text-muted">{{ p.p_atient_id }}</td>
+                        <td class="fw-medium">{{ p.p_name }}</td>
+                        <td>{{ p.p_age }}岁</td>
+                        <td>
+                            {% if p.p_sex == '男' %}
+                            <span class="badge bg-primary-subtle text-primary rounded-pill"><i
+                                    class="bi bi-gender-male"></i> 男</span>
+                            {% else %}
+                            <span class="badge bg-danger-subtle text-danger rounded-pill"><i
+                                    class="bi bi-gender-female"></i> 女</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.p_tel }}</td>
+                        <td><small class="text-muted text-truncate d-inline-block" style="max-width: 200px;">{{ p.p_inf
+                                }}</small></td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-warning btn-sm"
+                                    onclick="editPatient('{{ p.p_atient_id }}', '{{ p.p_name }}', {{ p.p_age }}, '{{ p.p_sex }}', '{{ p.p_tel }}', '{{ p.p_inf }}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form action="{{ url_for('delete_patient', id=p.p_atient_id) }}" method="POST"
+                                    class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('确定要删除该病人吗？')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑病人模态框 -->
+<div class="modal fade" id="editPatientModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>编辑病人信息</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_patient_submit') }}">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="p_atient_id" id="edit_p_atient_id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small text-uppercase fw-bold">姓名</label>
+                            <input type="text" class="form-control" name="p_name" id="edit_p_name" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small text-uppercase fw-bold">年龄</label>
+                            <input type="number" class="form-control" name="p_age" id="edit_p_age" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small text-uppercase fw-bold">性别</label>
+                            <select class="form-select" name="p_sex" id="edit_p_sex" required>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted small text-uppercase fw-bold">电话</label>
+                            <input type="text" class="form-control" name="p_tel" id="edit_p_tel" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted small text-uppercase fw-bold">病例信息</label>
+                            <textarea class="form-control" name="p_inf" id="edit_p_inf" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary px-4">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editPatient(id, name, age, sex, tel, inf) {
+        document.getElementById('edit_p_atient_id').value = id;
+        document.getElementById('edit_p_name').value = name;
+        document.getElementById('edit_p_age').value = age;
+        document.getElementById('edit_p_sex').value = sex;
+        document.getElementById('edit_p_tel').value = tel;
+        document.getElementById('edit_p_inf').value = inf;
+
+        new bootstrap.Modal(document.getElementById('editPatientModal')).show();
+    }
+</script>
+{% endblock %}

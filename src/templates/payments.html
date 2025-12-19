@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold mb-0 text-primary"><i class="bi bi-wallet2 me-2"></i>支付管理</h2>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-success-subtle text-success-emphasis fs-6 rounded-pill px-3">{{ payments|length }}
+            条支付记录</span>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+        <h5 class="fw-bold text-success mb-0"><i class="bi bi-credit-card-2-front me-2"></i>新增支付</h5>
+    </div>
+    <div class="card-body">
+        {% if unpaid_charges %}
+        <form method="POST" action="{{ url_for('payments') }}">
+            <div class="mb-4">
+                <label class="form-label text-muted small text-uppercase fw-bold">待支付列表</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <select class="form-select border-start-0 ps-0" name="combined" id="chargeSelect" required
+                        onchange="updatePaymentInfo()" style="cursor: pointer;">
+                        <option value="" selected disabled>请选择未支付的收费记录...</option>
+                        {% for c in unpaid_charges %}
+                        <option value="{{ c[1] }}|{{ c[0] }}|{{ c[3] }}">
+                            [#{{ c[0] }}] {{ c[2] }} - 应付金额: ￥{{ c[3] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="hidden" name="patient_id" id="patientId">
+                <input type="hidden" name="t_id" id="tId">
+                <input type="hidden" name="price" id="price">
+            </div>
+
+            <div class="card bg-success-subtle border-0 mb-4 fade-in" id="paymentSummary" style="display:none;">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-success-emphasis mb-1 fw-bold">支付摘要</h6>
+                        <span id="summaryText" class="text-success-emphasis"></span>
+                    </div>
+                    <i class="bi bi-check-circle-fill text-success fs-2"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                <i class="bi bi-currency-yen me-1"></i>确认支付 <small class="opacity-75">(自动生成票单)</small>
+            </button>
+        </form>
+        {% else %}
+        <div class="text-center py-4 text-muted bg-light rounded">
+            <i class="bi bi-check2-circle display-4 text-success opacity-50 mb-2"></i>
+            <p class="mb-0">当前没有未支付的收费记录</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white pt-4 pb-2">
+        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-clock-history me-2"></i>支付历史</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>收费编号</th>
+                        <th>病人信息</th>
+                        <th>支付金额</th>
+                        <th>支付时间</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td class="font-monospace text-muted">{{ p[2] }}</td>
+                        <td>
+                            <div class="fw-medium">{{ p[1] }}</div>
+                            <small class="text-muted">ID: {{ p[0] }}</small>
+                        </td>
+                        <td class="text-success fw-bold">￥{{ p[3] }}</td>
+                        <td class="text-muted small">{{ p[4] }}</td>
+                        <td class="text-end">
+                            <form action="{{ url_for('delete_payment', patient_id=p[0], t_id=p[2]) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('警告：删除支付记录将同时删除关联的取药票单，确定继续吗？')">
+                                    <i class="bi bi-trash"></i> 删除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updatePaymentInfo() {
+        const select = document.getElementById('chargeSelect');
+        const value = select.value;
+        if (value) {
+            const parts = value.split('|');
+            document.getElementById('patientId').value = parts[0];
+            document.getElementById('tId').value = parts[1];
+            document.getElementById('price').value = parts[2];
+
+            const option = select.options[select.selectedIndex].text;
+            document.getElementById('summaryText').textContent = option;
+            document.getElementById('paymentSummary').style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

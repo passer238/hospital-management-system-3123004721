@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="fw-bold text-primary mb-4"><i class="bi bi-calendar-check me-2"></i>挂号管理</h2>
+
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-header bg-primary text-white py-3">
+        <h5 class="mb-0"><i class="bi bi-plus-lg me-2"></i>新增挂号</h5>
+    </div>
+    <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('registration') }}">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="r_patient_id" name="r_patient_id"
+                            placeholder="病人身份证号" required>
+                        <label for="r_patient_id">病人身份证号</label>
+                    </div>
+                    <div class="form-text ms-1"><i class="bi bi-info-circle me-1"></i>输入后将自动查询并填充信息</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="r_P_name" name="r_P_name" placeholder="病人姓名"
+                            required>
+                        <label for="r_P_name">病人姓名</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <select class="form-select" id="r_sex" name="r_sex" required>
+                            <option value="" selected disabled>请选择</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                        <label for="r_sex">性别</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="r_dept" name="r_dept" required>
+                            <option value="" selected disabled>请选择科室</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept }}">{{ dept }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="r_dept">挂号科室</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="r_doctor_id" name="r_doctor_id" required disabled>
+                            <option value="" selected disabled>请先选择科室</option>
+                        </select>
+                        <label for="r_doctor_id">选择医生</label>
+                    </div>
+                    <input type="hidden" id="r_name" name="r_name">
+                </div>
+            </div>
+
+            <div id="patient-alert" class="alert alert-info shadow-sm" style="display: none;"></div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary btn-lg px-5" id="submit-btn" disabled>
+                    <i class="bi bi-check-lg me-2"></i>确认挂号
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 医生数据（从后端传入）
+    const doctors = [
+        {% for doctor in doctors %}
+    { id: '{{ doctor.d_octor_id }}', name: '{{ doctor.d_name }}', dept: '{{ doctor.d_dept }}' } {% if not loop.last %}, {% endif %}
+    {% endfor %}
+];
+
+    // 监听医生选择，自动填充医生姓名
+    document.getElementById('r_doctor_id').addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('r_name').value = selectedOption.getAttribute('data-name');
+    });
+
+    // 科室变化时，过滤医生列表
+    document.getElementById('r_dept').addEventListener('change', function () {
+        const selectedDept = this.value;
+        const doctorSelect = document.getElementById('r_doctor_id');
+
+        // 清空医生下拉框
+        doctorSelect.innerHTML = '<option value="" selected disabled>请选择医生</option>';
+        document.getElementById('r_name').value = '';
+
+        // 过滤该科室的医生
+        const filteredDoctors = doctors.filter(d => d.dept === selectedDept);
+
+        if (filteredDoctors.length > 0) {
+            filteredDoctors.forEach(doctor => {
+                const option = document.createElement('option');
+                option.value = doctor.id; // 发送ID
+                option.setAttribute('data-name', doctor.name);
+                option.textContent = `${doctor.name} (编号: ${doctor.id})`;
+                doctorSelect.appendChild(option);
+            });
+            doctorSelect.disabled = false;
+            // 添加浮动标签所需的placeholder样式类效果（可选优化）
+        } else {
+            doctorSelect.innerHTML = '<option value="" selected disabled>该科室暂无在岗医生</option>';
+            doctorSelect.disabled = true;
+        }
+    });
+
+    // 身份证号输入自动查询病人信息
+    document.getElementById('r_patient_id').addEventListener('blur', function () {
+        const patientId = this.value.trim();
+        const alertDiv = document.getElementById('patient-alert');
+        const nameInput = document.getElementById('r_P_name');
+        const sexSelect = document.getElementById('r_sex');
+        const submitBtn = document.getElementById('submit-btn');
+
+        if (!patientId) {
+            alertDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        // 查询病人信息
+        fetch(`/api/patient/${patientId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 自动填充病人信息
+                    nameInput.value = data.name;
+                    sexSelect.value = data.sex;
+                    submitBtn.disabled = false;
+
+                    alertDiv.className = 'alert alert-success d-flex align-items-center';
+                    alertDiv.innerHTML = `<i class="bi bi-check-circle-fill fs-5 me-2"></i><div>已找到病人档案：<strong>${data.name}</strong> (${data.sex})</div>`;
+                    alertDiv.style.display = 'block';
+                } else {
+                    // 未找到病人，允许手动输入
+                    alertDiv.className = 'alert alert-warning d-flex align-items-center';
+                    alertDiv.innerHTML = `<i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i><div>${data.message}</div>`;
+                    alertDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alertDiv.className = 'alert alert-danger d-flex align-items-center';
+                alertDiv.innerHTML = '<i class="bi bi-x-circle-fill fs-5 me-2"></i><div>查询失败，请检查网络或手动输入信息</div>';
+                alertDiv.style.display = 'block';
+                submitBtn.disabled = false;
+            });
+    });
+</script>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white pt-4 pb-2 border-0">
+        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-list-ul me-2"></i>挂号记录</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>身份证号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>科室</th>
+                        <th>医生</th>
+                        <th>时间</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in registrations %}
+                    <tr>
+                        <td><span class="badge bg-light text-dark border">{{ reg.r_num }}</span></td>
+                        <td>{{ reg.r_patient_id }}</td>
+                        <td class="fw-medium">{{ reg.r_P_name }}</td>
+                        <td>
+                            {% if reg.r_sex == '男' %}
+                            <i class="bi bi-gender-male text-primary"></i>
+                            {% else %}
+                            <i class="bi bi-gender-female text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-info-subtle text-info-emphasis">{{ reg.r_dept }}</span></td>
+                        <td>{{ reg.r_name }}</td>
+                        <td class="text-muted small">{{ reg.create_time }}</td>
+                        <td class="text-end">
+                            <form action="{{ url_for('delete_registration', id=reg.r_num) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('确定要删除这条挂号记录吗？这将级联删除相关的处方、收费等记录！')">
+                                    <i class="bi bi-trash me-1"></i>删除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

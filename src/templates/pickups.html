@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold mb-0 text-primary"><i class="bi bi-receipt me-2"></i>取药票单</h2>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-warning-subtle text-warning-emphasis fs-6 rounded-pill px-3">{{ pickups|length }}
+            即时票单</span>
+    </div>
+</div>
+
+<div class="card bg-warning-subtle border-0 mb-4 shadow-sm">
+    <div class="card-body py-3 d-flex align-items-center">
+        <div class="bg-white p-2 rounded-circle text-warning me-3">
+            <i class="bi bi-lightbulb-fill"></i>
+        </div>
+        <div>
+            <h6 class="mb-0 fw-bold text-warning-emphasis">自动流转</h6>
+            <small class="text-warning-emphasis opacity-75">票单在支付完成后自动生成。请药房工作人员核对后标记为"已取药"。</small>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white pt-4 pb-2">
+        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-list-check me-2"></i>票单列表</h5>
+    </div>
+    <div class="card-body">
+        {% if pickups %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>收费编号</th>
+                        <th>药品明细</th>
+                        <th>数量</th>
+                        <th>金额</th>
+                        <th>当前状态</th>
+                        <th>生成时间</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pickups %}
+                    {# 字段顺序: t_id(0), drug_id(1), quantity(2), price(3), is_delete(4), create_time(5), update_time(6),
+                    is_picked(7) #}
+                    <tr class="{{ 'table-success-subtle' if p[7] else '' }}">
+                        <td class="font-monospace text-muted">{{ p[0] }}</td>
+                        <td class="fw-medium">{{ p[1] }}</td>
+                        <td><span class="badge bg-secondary-subtle text-dark rounded-pill">{{ p[2] }}</span></td>
+                        <td class="text-primary fw-bold">￥{{ p[3] }}</td>
+                        <td>
+                            {% if p[7] %}
+                            <span class="badge bg-success rounded-pill"><i class="bi bi-check-circle me-1"></i>
+                                已取药</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark rounded-pill"><i class="bi bi-clock me-1"></i>
+                                待取药</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ p[5] }}</td>
+                        <td class="text-end">
+                            {% if not p[7] %}
+                            <form action="{{ url_for('mark_pickup', t_id=p[0], drug_id=p[1]) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="btn btn-success btn-sm shadow-sm"
+                                    onclick="return confirm('确认已发药给病人？')">
+                                    <i class="bi bi-check2-square me-1"></i> 确认发药
+                                </button>
+                            </form>
+                            {% else %}
+                            <button class="btn btn-light btn-sm text-success" disabled>
+                                <i class="bi bi-check-all me-1"></i> 完成
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-1 opacity-25"></i>
+            <p class="mt-3">暂无需要处理的票单</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

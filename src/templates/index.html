@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center mb-5 fade-in">
+    <h1 class="display-5 fw-bold text-primary mb-2">医院信息管理系统</h1>
+    <p class="lead text-muted">高效 · 专业 · 智能的医疗管理解决方案</p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+    <!-- 挂号管理 -->
+    <div class="col fade-in" style="animation-delay: 0.1s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-calendar-check fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">挂号管理</h5>
+                <p class="card-text text-muted">快速办理病人挂号、预约分诊</p>
+                <a href="{{ url_for('registration') }}" class="btn btn-outline-primary stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 医生管理 -->
+    <div class="col fade-in" style="animation-delay: 0.2s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-person-badge fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">医生管理</h5>
+                <p class="card-text text-muted">管理医生档案、科室信息</p>
+                <a href="{{ url_for('doctors') }}" class="btn btn-outline-success stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 病人管理 -->
+    <div class="col fade-in" style="animation-delay: 0.3s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-people fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">病人信息</h5>
+                <p class="card-text text-muted">维护病人档案、病历与联系方式</p>
+                <a href="{{ url_for('patients') }}" class="btn btn-outline-warning stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 药品管理 -->
+    <div class="col fade-in" style="animation-delay: 0.4s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-capsule fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">药品管理</h5>
+                <p class="card-text text-muted">药品入库、库存监控与有效期管理</p>
+                <a href="{{ url_for('drugs') }}" class="btn btn-outline-danger stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 处方管理 -->
+    <div class="col fade-in" style="animation-delay: 0.5s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-file-medical fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">处方管理</h5>
+                <p class="card-text text-muted">医生开具电子处方、自动划价</p>
+                <a href="{{ url_for('prescriptions') }}" class="btn btn-outline-primary stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 收费管理 -->
+    <div class="col fade-in" style="animation-delay: 0.6s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-info-subtle text-info rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-credit-card fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">收费管理</h5>
+                <p class="card-text text-muted">查询待缴费项目、费用明细</p>
+                <a href="{{ url_for('charges') }}" class="btn btn-outline-info stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 支付管理 -->
+    <div class="col fade-in" style="animation-delay: 0.7s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-wallet2 fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">支付管理</h5>
+                <p class="card-text text-muted">处理缴费、生成支付记录</p>
+                <a href="{{ url_for('payments') }}" class="btn btn-outline-success stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 取药票单 -->
+    <div class="col fade-in" style="animation-delay: 0.8s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-receipt fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">取药票单</h5>
+                <p class="card-text text-muted">核验支付状态，生成取药凭证</p>
+                <a href="{{ url_for('pickups') }}" class="btn btn-outline-warning stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据统计 -->
+    <div class="col fade-in" style="animation-delay: 0.9s;">
+        <div class="card h-100 shadow-sm hover-shadow border-0">
+            <div class="card-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-3"
+                    style="width: 64px; height: 64px;">
+                    <i class="bi bi-bar-chart fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">数据统计</h5>
+                <p class="card-text text-muted">多维度数据分析与可视化报表</p>
+                <a href="{{ url_for('statistics') }}" class="btn btn-outline-primary stretched-link">进入模块</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

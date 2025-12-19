@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医院信息管理系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <div class="d-flex align-items-center justify-content-center bg-primary-subtle rounded-circle"
+                    style="width: 40px; height: 40px;">
+                    <i class="bi bi-hospital-fill fs-5"></i>
+                </div>
+                <span>医院信息管理系统</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-speedometer2"></i> 首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('registration') }}"><i class="bi bi-calendar-check"></i>
+                            挂号</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-people"></i> 人员管理
+                        </a>
+                        <ul class="dropdown-menu shadow-sm border-0">
+                            <li><a class="dropdown-item" href="{{ url_for('doctors') }}"><i
+                                        class="bi bi-person-badge me-2"></i>医生管理</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('patients') }}"><i
+                                        class="bi bi-emoji-smile me-2"></i>病人管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-capsule"></i> 医疗业务
+                        </a>
+                        <ul class="dropdown-menu shadow-sm border-0">
+                            <li><a class="dropdown-item" href="{{ url_for('drugs') }}"><i
+                                        class="bi bi-box-seam me-2"></i>药品管理</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('prescriptions') }}"><i
+                                        class="bi bi-file-medical me-2"></i>处方管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-wallet2"></i> 财务管理
+                        </a>
+                        <ul class="dropdown-menu shadow-sm border-0">
+                            <li><a class="dropdown-item" href="{{ url_for('charges') }}"><i
+                                        class="bi bi-credit-card me-2"></i>收费查询</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('payments') }}"><i
+                                        class="bi bi-currency-yen me-2"></i>支付管理</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('pickups') }}"><i
+                                        class="bi bi-receipt me-2"></i>取药票单</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('statistics') }}"><i class="bi bi-bar-chart-line"></i>
+                            统计</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container fade-in my-4" style="min-height: 70vh;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-10">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i
+                            class="bi bi-{{ 'check-circle-fill' if category == 'success' else 'exclamation-triangle-fill' }} fs-5 me-2"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-1">&copy; 2025 医院信息管理系统</p>
+            <p class="text-xs text-muted mb-0">基于 Flask & SQL Server</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
