@@ -35,7 +35,7 @@
 │   └── 数据库课程设计-医院管理数据库.pdf        # 课程设计报告（PDF版）
 │
 ├── src/                            # 💻 核心源代码
-│   ├── app.py                      # Flask主应用程序（962行）
+│   ├── app.py                      # Flask主应用程序
 │   ├── init_db.py                  # 数据库初始化脚本
 │   ├── requirements.txt            # Python依赖列表
 │   └── templates/                  # HTML模板文件
@@ -51,16 +51,9 @@
 │       ├── pickups.html            # 取药管理
 │       └── analysis.html           # 数据统计分析
 │
-├── sql/                            # 🗄️ 数据库设计资源
-│   ├── sql_server_schema.sql       # SQL Server完整建表脚本（含触发器、索引）
-│   └── sql建表.md                  # 数据库设计说明文档
-│
-└── 纯后端/                         # 🔧 纯SQL脚本（适用于SSMS）
-    ├── 01_建表脚本.sql             # 数据库和表结构创建
-    ├── 02_存储过程.sql             # 所有业务逻辑存储过程
-    ├── 03_视图.sql                 # 数据查询视图
-    ├── 04_测试数据.sql             # 测试数据
-    └── README.md                   # 纯后端使用说明
+└── sql/                            # 🗄️ 数据库设计资源
+    ├── sql_server_schema.sql       # SQL Server完整建表脚本
+    └── sql建表.md                  # 数据库设计说明文档（原始MySQL版本参考）
 ```
 
 ---
@@ -97,52 +90,63 @@ pip install -r requirements.txt
 
 ### 2. 数据库配置
 
-#### 方式一：使用Web应用（推荐）
-
 1. **创建数据库并执行建表脚本**
    
    在SSMS中执行 `sql/sql_server_schema.sql`，该脚本会自动：
-   - 创建数据库 `hospital3123004721`
-   - 创建所有数据表
+   - 创建数据库 `hospital_3123004721_袁子轩`
+   - 创建所有数据表（名称后加学号和姓名后缀）
    - 创建索引和约束
+   - 插入测试数据
 
 2. **配置数据库连接**
    
-   编辑 `src/app.py` 中的数据库配置：
+   `src/app.py` 中的数据库配置已预设：
    ```python
    # 数据库配置
    SERVER = 'localhost'           # 修改为你的服务器地址
-   DATABASE = 'hospital3123004721'
+   DATABASE = 'hospital_3123004721_袁子轩'  # 数据库名称
+   
+   # 表名常量 - 命名规范：表名_学号_姓名
+   TABLE_SUFFIX = '_3123004721_袁子轩'
+   T_REGISTER = f'register{TABLE_SUFFIX}'   # register_3123004721_袁子轩
+   T_DOCTOR = f'doctor{TABLE_SUFFIX}'       # doctor_3123004721_袁子轩
+   # ... 其他表
    
    # Windows身份验证（推荐）
    CONNECTION_STRING = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;'
-   
-   # 或 SQL Server身份验证
-   # CONNECTION_STRING = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID=your_username;PWD=your_password;'
    ```
 
 3. **启动应用**
    ```bash
    cd src
    python app.py
-   # 或指定Python版本
-   py -3.11 app.py
    ```
 
 4. **访问系统**
    
    打开浏览器访问 http://127.0.0.1:5000
 
-#### 方式二：纯SQL后端（适用于SSMS学习）
+### 命名规范说明
 
-在 SSMS 中按顺序执行 `纯后端/` 目录下的脚本：
+本项目所有数据库对象均采用以下命名规范：
 
-```
-1. 01_建表脚本.sql   -- 创建数据库和所有表
-2. 02_存储过程.sql   -- 创建存储过程
-3. 03_视图.sql       -- 创建视图
-4. 04_测试数据.sql   -- 插入测试数据（可选）
-```
+| 对象类型 | 命名格式 | 示例 |
+|---------|---------|------|
+| **数据库** | `hospital_学号_姓名` | `hospital_3123004721_袁子轩` |
+| **表** | `表名_学号_姓名` | `register_3123004721_袁子轩` |
+
+**表名对照**：
+| 原始表名 | 新表名 |
+|---------|--------|
+| `register` | `register_3123004721_袁子轩` |
+| `doctor` | `doctor_3123004721_袁子轩` |
+| `patient` | `patient_3123004721_袁子轩` |
+| `drugs` | `drugs_3123004721_袁子轩` |
+| `recipel` | `recipel_3123004721_袁子轩` |
+| `prescription_drug` | `prescription_drug_3123004721_袁子轩` |
+| `charge` | `charge_3123004721_袁子轩` |
+| `pay` | `pay_3123004721_袁子轩` |
+| `PGM` | `PGM_3123004721_袁子轩` |
 
 ---
 
@@ -182,15 +186,15 @@ graph LR
 
 | 表名 | 说明 | 主键 |
 |------|------|------|
-| `doctor` | 医生信息表 | `Dno` (医生编号) |
-| `patient` | 病人信息表 | `Pno` (身份证号) |
-| `drug` | 药品信息表 | `DGno` (药品编号) |
-| `register` | 挂号记录表 | `Rno` (挂号编号) |
-| `recipel` | 处方信息表 | `REno` (处方编号) |
-| `prescription_drug` | 处方药品表 | `REno, DGno` (复合主键) |
-| `charge` | 收费记录表 | `Tno` (收费编号) |
-| `pay` | 支付记录表 | `Pno, Tno` (复合主键) |
-| `PGM` | 取药票单表 | `Tno, DGno` (复合主键) |
+| `doctor_3123004721_袁子轩` | 医生信息表 | `d_octor_id` (医生编号) |
+| `patient_3123004721_袁子轩` | 病人信息表 | `p_atient_id` (身份证号) |
+| `drugs_3123004721_袁子轩` | 药品信息表 | `drug_id` (药品编号) |
+| `register_3123004721_袁子轩` | 挂号记录表 | `r_num` (挂号编号) |
+| `recipel_3123004721_袁子轩` | 处方信息表 | `id` (处方编号) |
+| `prescription_drug_3123004721_袁子轩` | 处方药品表 | `prescription_id, drug_id` (复合主键) |
+| `charge_3123004721_袁子轩` | 收费记录表 | `toll_id` (收费编号) |
+| `pay_3123004721_袁子轩` | 支付记录表 | `patient_id, t_id` (复合主键) |
+| `PGM_3123004721_袁子轩` | 取药票单表 | `t_id, drug_id` (复合主键) |
 
 ### 数据表关系（E-R图）
 
@@ -235,7 +239,7 @@ erDiagram
 
 ### 挂号管理
 ```sql
--- 添加挂号（自动使用最小可用编号）
+-- 添加挂号
 EXEC sp_AddRegistration '身份证号', N'姓名', N'性别', N'科室', N'医生姓名';
 
 -- 删除挂号（级联删除所有关联数据，恢复库存）
