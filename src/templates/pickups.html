@@ -44,8 +44,8 @@
                 </thead>
                 <tbody>
                     {% for p in pickups %}
-                    {# 字段顺序: t_id(0), drug_id(1), quantity(2), price(3), is_delete(4), create_time(5), update_time(6),
-                    is_picked(7) #}
+                    {# 字段顺序: t_id(0), drug_name(1), quantity(2), price(3), is_delete(4), create_time(5), update_time(6),
+                    is_picked(7), drug_id(8) #}
                     <tr class="{{ 'table-success-subtle' if p[7] else '' }}">
                         <td class="font-monospace text-muted">{{ p[0] }}</td>
                         <td class="fw-medium">{{ p[1] }}</td>
@@ -63,13 +63,10 @@
                         <td class="text-muted small">{{ p[5] }}</td>
                         <td class="text-end">
                             {% if not p[7] %}
-                            <form action="{{ url_for('mark_pickup', t_id=p[0], drug_id=p[1]) }}" method="POST"
-                                style="display:inline;">
-                                <button type="submit" class="btn btn-success btn-sm shadow-sm"
-                                    onclick="return confirm('确认已发药给病人？')">
-                                    <i class="bi bi-check2-square me-1"></i> 确认发药
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-success btn-sm shadow-sm"
+                                onclick="confirmAction('{{ url_for('mark_pickup', t_id=p[0], drug_id=p[8]) }}', '确认已将药品 <strong>{{ p[1] }}</strong> 发给病人？', '确认发药', '确认发药', 'btn-success')">
+                                <i class="bi bi-check2-square me-1"></i> 确认发药
+                            </button>
                             {% else %}
                             <button class="btn btn-light btn-sm text-success" disabled>
                                 <i class="bi bi-check-all me-1"></i> 完成

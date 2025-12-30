@@ -194,13 +194,10 @@
                         <td>{{ reg.r_name }}</td>
                         <td class="text-muted small">{{ reg.create_time }}</td>
                         <td class="text-end">
-                            <form action="{{ url_for('delete_registration', id=reg.r_num) }}" method="POST"
-                                style="display:inline;">
-                                <button type="submit" class="btn btn-outline-danger btn-sm"
-                                    onclick="return confirm('确定要删除这条挂号记录吗？这将级联删除相关的处方、收费等记录！')">
-                                    <i class="bi bi-trash me-1"></i>删除
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                onclick="confirmDelete('{{ url_for('delete_registration', id=reg.r_num) }}', '确定要删除这条挂号记录吗？<br><strong>此操作将级联删除相关的处方、收费等记录！</strong>')">
+                                <i class="bi bi-trash me-1"></i>删除
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}

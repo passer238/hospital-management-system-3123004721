@@ -105,11 +105,101 @@
     <footer class="footer">
         <div class="container">
             <p class="mb-1">&copy; 2025 医院信息管理系统</p>
-            <p class="text-xs text-muted mb-0">基于 Flask & SQL Server</p>
+            <p class="text-xs text-muted mb-0">基于 Flask &amp; SQL Server</p>
         </div>
     </footer>
 
+    <!-- 统一删除确认弹窗 -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>确认删除</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-trash3 text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="text-center mb-0" id="deleteConfirmMessage">确定要删除此记录吗？此操作不可撤销。</p>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>取消
+                    </button>
+                    <form id="deleteConfirmForm" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash3 me-1"></i>确认删除
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统一操作确认弹窗 -->
+    <div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="actionConfirmTitle"><i class="bi bi-question-circle-fill me-2"></i>确认操作</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-check-circle text-primary" id="actionConfirmIcon" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="text-center mb-0" id="actionConfirmMessage">确定要执行此操作吗？</p>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>取消
+                    </button>
+                    <form id="actionConfirmForm" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-primary" id="actionConfirmBtn">
+                            <i class="bi bi-check-lg me-1"></i>确认
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 统一删除确认函数
+        function confirmDelete(url, message) {
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            document.getElementById('deleteConfirmForm').action = url;
+            if (message) {
+                document.getElementById('deleteConfirmMessage').innerHTML = message;
+            } else {
+                document.getElementById('deleteConfirmMessage').innerHTML = '确定要删除此记录吗？此操作不可撤销。';
+            }
+            modal.show();
+            return false;
+        }
+
+        // 统一操作确认函数
+        function confirmAction(url, message, title, btnText, btnClass) {
+            const modal = new bootstrap.Modal(document.getElementById('actionConfirmModal'));
+            document.getElementById('actionConfirmForm').action = url;
+            if (message) {
+                document.getElementById('actionConfirmMessage').innerHTML = message;
+            }
+            if (title) {
+                document.getElementById('actionConfirmTitle').innerHTML = '<i class="bi bi-question-circle-fill me-2"></i>' + title;
+            }
+            if (btnText) {
+                document.getElementById('actionConfirmBtn').innerHTML = '<i class="bi bi-check-lg me-1"></i>' + btnText;
+            }
+            if (btnClass) {
+                document.getElementById('actionConfirmBtn').className = 'btn ' + btnClass;
+            }
+            modal.show();
+            return false;
+        }
+    </script>
 </body>
 
 </html>

@@ -87,13 +87,10 @@
                         <td class="text-success fw-bold">￥{{ p[3] }}</td>
                         <td class="text-muted small">{{ p[4] }}</td>
                         <td class="text-end">
-                            <form action="{{ url_for('delete_payment', patient_id=p[0], t_id=p[2]) }}" method="POST"
-                                style="display:inline;">
-                                <button type="submit" class="btn btn-outline-danger btn-sm"
-                                    onclick="return confirm('警告：删除支付记录将同时删除关联的取药票单，确定继续吗？')">
-                                    <i class="bi bi-trash"></i> 删除
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                onclick="confirmDelete('{{ url_for('delete_payment', patient_id=p[0], t_id=p[2]) }}', '⚠️ 删除支付记录将<strong>同时删除</strong>关联的取药票单！<br>确定继续吗？')">
+                                <i class="bi bi-trash"></i> 删除
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}

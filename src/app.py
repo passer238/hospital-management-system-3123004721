@@ -802,10 +802,14 @@ def pickups():
         return "Database connection failed", 500
     cursor = conn.cursor()
 
+    # JOIN drugs 表获取药品名称
     cursor.execute(f"""
-        SELECT t_id, drug_id, quantity, price, is_delete, 
-               CONVERT(VARCHAR, create_time, 120) as create_time, update_time, is_picked 
-        FROM {T_PGM} WHERE is_delete = 0 ORDER BY create_time DESC
+        SELECT p.t_id, d.drug_name, p.quantity, p.price, p.is_delete, 
+               CONVERT(VARCHAR, p.create_time, 120) as create_time, p.update_time, p.is_picked,
+               p.drug_id
+        FROM {T_PGM} p
+        LEFT JOIN {T_DRUGS} d ON p.drug_id = d.drug_id
+        WHERE p.is_delete = 0 ORDER BY p.create_time DESC
     """)
     pickups = cursor.fetchall()
     conn.close()

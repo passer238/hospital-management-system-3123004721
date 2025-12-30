@@ -116,13 +116,10 @@
                                     onclick="editDrug('{{ d.drug_id }}', '{{ d.drug_name }}', {{ d.drug_price }}, {{ d.drug_quantity }}, '{{ d.drug_storage }}')">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <form action="{{ url_for('delete_drug', id=d.drug_id) }}" method="POST"
-                                    style="display:inline;">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm"
-                                        onclick="return confirm('确定要删除该药品吗？')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                    onclick="confirmDelete('{{ url_for('delete_drug', id=d.drug_id) }}', '确定要删除药品 <strong>{{ d.drug_name }}</strong> 吗？')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
