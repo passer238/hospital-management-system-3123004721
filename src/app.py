@@ -82,15 +82,17 @@ def registration():
         r_name = request.form['r_name'] # 保留用于冗余/显示，或直接插入
         
         try:
-            # 获取最小可用编号
-            next_id = get_next_available_id(cursor, T_REGISTER, 'r_num')
-            # 开启IDENTITY_INSERT以允许显式插入ID
-            cursor.execute(f"SET IDENTITY_INSERT {T_REGISTER} ON")
-            cursor.execute(f"INSERT INTO {T_REGISTER} (r_num, r_patient_id, r_P_name, r_sex, r_dept, r_doctor_id, r_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                           (next_id, r_patient_id, r_P_name, r_sex, r_dept, r_doctor_id, r_name))
-            cursor.execute(f"SET IDENTITY_INSERT {T_REGISTER} OFF")
+            # 由于存在 INSTEAD OF INSERT 触发器，SCOPE_IDENTITY() 在此作用域为 NULL
+            # 在同一批次中使用 @@IDENTITY 获取新生成的 ID
+            cursor.execute(f"SET NOCOUNT ON; INSERT INTO {T_REGISTER} (r_patient_id, r_P_name, r_sex, r_dept, r_doctor_id, r_name) VALUES (?, ?, ?, ?, ?, ?); SELECT @@IDENTITY;",
+                           (r_patient_id, r_P_name, r_sex, r_dept, r_doctor_id, r_name))
+            generated_id = cursor.fetchone()[0]
+            
+            if generated_id is None:
+                raise Exception("生成的挂号 ID 为空，请检查数据库触发器逻辑")
+                
             conn.commit()
-            flash(f'挂号成功！挂号编号: {next_id}', 'success')
+            flash(f'挂号成功！挂号编号: {int(generated_id)}', 'success')
         except Exception as e:
             flash(f'挂号失败: {e}', 'danger')
         
@@ -451,16 +453,28 @@ def drugs():
             flash(f'添加药品失败: {e}', 'danger')
         return redirect(url_for('drugs'))
 
-    cursor.execute(f"""
-        SELECT drug_id, drug_name, drug_price, drug_quantity, drug_storage, 
-               CONVERT(VARCHAR, drug_date, 23) as drug_date, 
-               CONVERT(VARCHAR, usefull_life, 23) as usefull_life,
-               is_delete, create_time, update_time
-        FROM {T_DRUGS} WHERE is_delete = 0
-    """)
+    # 模糊查询支持
+    search_query = request.args.get('search', '')
+    if search_query:
+        cursor.execute(f"""
+            SELECT drug_id, drug_name, drug_price, drug_quantity, drug_storage, 
+                   CONVERT(VARCHAR, drug_date, 23) as drug_date, 
+                   CONVERT(VARCHAR, usefull_life, 23) as usefull_life,
+                   is_delete, create_time, update_time
+            FROM {T_DRUGS} 
+            WHERE is_delete = 0 AND (drug_name LIKE ? OR drug_id LIKE ?)
+        """, (f'%{search_query}%', f'%{search_query}%'))
+    else:
+        cursor.execute(f"""
+            SELECT drug_id, drug_name, drug_price, drug_quantity, drug_storage, 
+                   CONVERT(VARCHAR, drug_date, 23) as drug_date, 
+                   CONVERT(VARCHAR, usefull_life, 23) as usefull_life,
+                   is_delete, create_time, update_time
+            FROM {T_DRUGS} WHERE is_delete = 0
+        """)
     drugs = cursor.fetchall()
     conn.close()
-    return render_template('drugs.html', drugs=drugs)
+    return render_template('drugs.html', drugs=drugs, search_query=search_query)
 
 @app.route('/drugs/delete/<string:id>', methods=['POST'])
 def delete_drug(id):
@@ -557,14 +571,14 @@ def prescriptions():
                  raise Exception(f'找不到挂号记录 {registration_id}')
             doctor_id = reg_result[0]
 
-            # 获取最小可用的处方编号
-            prescription_id = get_next_available_id(cursor, T_RECIPEL, 'id')
-            
             # 插入处方主记录（包含挂号编号）
-            cursor.execute(f"SET IDENTITY_INSERT {T_RECIPEL} ON")
-            cursor.execute(f"INSERT INTO {T_RECIPEL} (id, doctor_id, patient_name, registration_id) VALUES (?, ?, ?, ?)",
-                           (prescription_id, doctor_id, patient_name, registration_id))
-            cursor.execute(f"SET IDENTITY_INSERT {T_RECIPEL} OFF")
+            # 在同一批次中获取 ID 以确保作用域一致
+            cursor.execute(f"SET NOCOUNT ON; INSERT INTO {T_RECIPEL} (doctor_id, patient_name, registration_id) VALUES (?, ?, ?); SELECT SCOPE_IDENTITY();",
+                           (doctor_id, patient_name, registration_id))
+            res = cursor.fetchone()
+            if not res or res[0] is None:
+                raise Exception("生成的处方 ID 为空")
+            prescription_id = int(res[0])
             
             # 处理每个药品
             added_drugs = 0
@@ -573,17 +587,24 @@ def prescriptions():
                 if drug_id and i < len(counts) and counts[i]:
                     quantity = int(counts[i])
                     
-                    # 检查库存是否充足
-                    cursor.execute(f"SELECT drug_quantity, drug_name, drug_price FROM {T_DRUGS} WHERE drug_id = ? AND is_delete = 0", (drug_id,))
+                    # 检查库存及有效期
+                    cursor.execute(f"SELECT drug_quantity, drug_name, drug_price, usefull_life FROM {T_DRUGS} WHERE drug_id = ? AND is_delete = 0", (drug_id,))
                     stock_result = cursor.fetchone()
                     if not stock_result:
                         raise Exception(f'药品 {drug_id} 不存在')
+                    
                     current_stock = stock_result[0]
                     drug_name = stock_result[1]
                     drug_price = stock_result[2]
+                    useful_life = stock_result[3]
                     
+                    # 检查是否过期
+                    from datetime import datetime
+                    if useful_life and useful_life < datetime.now():
+                        raise Exception(f'药品【{drug_name}】(编号:{drug_id}) 已于 {useful_life.strftime("%Y-%m-%d")} 过期，无法开具处方！')
+
                     if current_stock < quantity:
-                        raise Exception(f'{drug_name} 库存不足！当前库存: {current_stock}, 需要: {quantity}')
+                        raise Exception(f'药品【{drug_name}】库存不足！当前库存: {current_stock}, 需要: {quantity}')
                     
                     # 插入处方药品记录
                     cursor.execute(f"INSERT INTO {T_PRESCRIPTION_DRUG} (prescription_id, drug_id, quantity) VALUES (?, ?, ?)",
@@ -612,6 +633,16 @@ def prescriptions():
             
             conn.commit()
             flash(f'处方开具成功！已添加 {added_drugs} 种药品，收费记录已自动生成，总金额: ￥{total_amount:.2f}', 'success')
+        except pyodbc.Error as e:
+            conn.rollback()
+            # 捕获 SQL Server 报错，如果是触发器抛出的 RAISERROR，尝试提取核心信息
+            err_msg = str(e)
+            if '部分药品已过期' in err_msg:
+                flash('处方添加失败: 包含已过期药品，请检查药品库存效期。', 'danger')
+            elif '库存不足' in err_msg:
+                flash('处方添加失败: 部分药品库存不足。', 'danger')
+            else:
+                flash(f'数据库操作失败，请联系管理员。', 'danger')
         except Exception as e:
             conn.rollback()
             flash(f'处方添加失败: {e}', 'danger')
@@ -963,6 +994,16 @@ def statistics():
         """)
         popular_drugs = cursor.fetchall()[:10]
         
+        # 自身连接查询示例：查找与该医生同科室的其他在岗医生
+        cursor.execute(f"""
+            SELECT d1.d_name, d1.d_dept, d2.d_name as colleague
+            FROM {T_DOCTOR} d1
+            JOIN {T_DOCTOR} d2 ON d1.d_dept = d2.d_dept AND d1.d_octor_id <> d2.d_octor_id
+            WHERE d1.is_delete = 0 AND d1.is_jobing = 1 
+              AND d2.is_delete = 0 AND d2.is_jobing = 1
+        """)
+        colleague_stats = cursor.fetchall()
+        
     except Exception as e:
         conn.close()
         return f"统计数据查询失败: {e}", 500
@@ -973,7 +1014,8 @@ def statistics():
                            low_stock_drugs=low_stock_drugs,
                            dept_stats=dept_stats,
                            doctor_stats=doctor_stats,
-                           popular_drugs=popular_drugs)
+                           popular_drugs=popular_drugs,
+                           colleague_stats=colleague_stats)
 
 if __name__ == '__main__':
     app.run(debug=True)

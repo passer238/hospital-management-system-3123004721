@@ -1,30 +1,9 @@
-# 医院信息管理系统 - 数据库设计与实现
-
-> **作者**: 袁子轩  
-> **学号**: 3123004721  
-> **更新日期**: 2025年1月  
-
----
-
-## 项目概况
-本项目为医院信息管理系统（HIS）的数据库部分，采用 **SQL Server** 作为数据库管理系统。
-所有数据库对象（表、视图、存储过程、触发器）均遵循统一的命名规范：`对象名_学号_姓名拼音`。
-
-## 初始化说明
-系统提供了自动化初始化脚本 `src/init_all_db.py`，该脚本会按照以下顺序执行 SQL 文件：
-1. `00_建表脚本.sql` - 创建数据库及基础表结构
-2. `01_初始数据.sql` - 插入必要的系统数据和测试数据
-3. `02_视图.sql` - 创建用于统计和查询的视图
-4. `03_存储过程.sql` - 实现核心业务逻辑的存储过程
-5. `04_触发器.sql` - 实现数据完整性和自动化维护的触发器
-
----
-
-## 1. 数据库建表脚本 (00_建表脚本.sql)
-
-```sql
 -- ============================================
 -- 医院信息管理系统数据库脚本
+-- 作者: 袁子轩 (yuanzixuan)
+-- 学号: 3123004721
+-- 创建日期: 2024年12月
+-- 命名规范: 数据库对象名_学号_姓名拼音
 -- ============================================
 
 -- 创建数据库
@@ -34,6 +13,18 @@ BEGIN
 END
 GO
 USE hospital_3123004721_yuanzixuan;
+GO
+
+-- 按反向依赖顺序删除表以处理外键
+IF OBJECT_ID('prescription_drug_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE prescription_drug_3123004721_yuanzixuan;
+IF OBJECT_ID('recipel_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE recipel_3123004721_yuanzixuan;
+IF OBJECT_ID('PGM_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE PGM_3123004721_yuanzixuan;
+IF OBJECT_ID('charge_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE charge_3123004721_yuanzixuan;
+IF OBJECT_ID('pay_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE pay_3123004721_yuanzixuan;
+IF OBJECT_ID('register_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE register_3123004721_yuanzixuan;
+IF OBJECT_ID('doctor_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE doctor_3123004721_yuanzixuan;
+IF OBJECT_ID('patient_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE patient_3123004721_yuanzixuan;
+IF OBJECT_ID('drugs_3123004721_yuanzixuan', 'U') IS NOT NULL DROP TABLE drugs_3123004721_yuanzixuan;
 GO
 
 -- 挂号表
@@ -160,114 +151,6 @@ CREATE TABLE pay_3123004721_yuanzixuan (
     PRIMARY KEY (patient_id, t_id)
 );
 GO
-```
 
----
-
-## 2. 初始数据插入 (01_初始数据.sql)
-
-```sql
-USE hospital_3123004721_yuanzixuan;
 GO
 
--- 医生数据
-INSERT INTO doctor_3123004721_yuanzixuan(d_octor_id, d_name, d_sex, d_age, d_dept, d_tel) VALUES (1, N'张三', N'男', 30, N'牙科', '137xxxx321');
-INSERT INTO doctor_3123004721_yuanzixuan(d_octor_id, d_name, d_sex, d_age, d_dept, d_tel) VALUES (2, N'李四', N'男', 30, N'妇产科', '137xxxx111');
--- ... (更多数据省略)
-
--- 药品数据
-INSERT INTO drugs_3123004721_yuanzixuan(drug_id, drug_name, drug_price, drug_quantity, drug_storage, drug_date, usefull_life) 
-VALUES ('100023', N'感冒灵颗粒', 40.00, 821, 'A-2-302', '2025-09-01', '2027-09-01');
--- ... (更多数据省略)
-```
-
----
-
-## 3. 视图定义 (02_视图.sql)
-
-```sql
--- 1. 病人就诊记录综合视图
-CREATE VIEW v_patient_records_3123004721 AS
-SELECT 
-    r.r_num AS '挂号编号',
-    r.r_patient_id AS '病人身份证',
-    r.r_P_name AS '病人姓名',
-    r.r_sex AS '性别',
-    r.r_dept AS '就诊科室',
-    d.d_name AS '主治医生',
-    p.p_inf AS '病例描述'
-FROM register_3123004721_yuanzixuan r
-LEFT JOIN doctor_3123004721_yuanzixuan d ON r.r_doctor_id = d.d_octor_id
-LEFT JOIN patient_3123004721_yuanzixuan p ON r.r_patient_id = p.p_atient_id;
-GO
-
--- 2. 药品库存预警视图
-CREATE VIEW v_drug_inventory_warning_3123004721 AS
-SELECT 
-    drug_id, drug_name, drug_quantity, usefull_life,
-    CASE WHEN drug_quantity < 100 THEN N'库存不足' ELSE N'即将过期' END AS '警告类型'
-FROM drugs_3123004721_yuanzixuan
-WHERE drug_quantity < 100 OR usefull_life < DATEADD(MONTH, 3, GETDATE());
-GO
-```
-
----
-
-## 4. 存储过程 (03_存储过程.sql)
-
-```sql
--- 存储过程: 完成处方结算
-CREATE PROCEDURE sp_settle_prescription_3123004721
-    @prescription_id INT,
-    @toll_id VARCHAR(10),
-    @toll_name NVARCHAR(10),
-    @patient_id VARCHAR(20)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    BEGIN TRANSACTION;
-    -- 核心逻辑: 游标遍历处方药品 -> 扣减库存 -> 插入收费记录
-    -- ...
-    COMMIT TRANSACTION;
-END;
-GO
-```
-
----
-
-## 5. 触发器定义 (04_触发器.sql)
-
-```sql
--- 触发器: 取药时自动扣减库存
-CREATE TRIGGER tr_pickup_reduce_stock_3123004721
-ON PGM_3123004721_yuanzixuan
-AFTER UPDATE
-AS
-BEGIN
-    IF EXISTS (SELECT 1 FROM inserted i JOIN deleted d ON i.t_id = d.t_id WHERE i.is_picked = 1 AND d.is_picked = 0)
-    BEGIN
-        UPDATE drugs_3123004721_yuanzixuan
-        SET drug_quantity = drug_quantity - i.quantity
-        FROM drugs_3123004721_yuanzixuan d JOIN inserted i ON d.drug_id = i.drug_id;
-    END
-END;
-GO
-```
-
----
-
-## 6. 备份与恢复方案 (05_备份恢复方案.sql)
-
-```sql
--- 完整备份脚本
-BACKUP DATABASE hospital_3123004721_yuanzixuan
-TO DISK = 'D:\Backup\Hospital\Full\hospital_full_backup.bak'
-WITH FORMAT, NAME = N'医院数据库完整备份';
-GO
-
--- 灾难恢复脚本
-RESTORE DATABASE hospital_3123004721_yuanzixuan
-FROM DISK = 'D:\Backup\Hospital\Full\hospital_full_backup.bak'
-WITH RECOVERY, REPLACE;
-GO
-```
