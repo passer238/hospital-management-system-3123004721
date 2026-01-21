@@ -12,8 +12,7 @@ GO
 -- 1. 触发器: 取药时自动扣减库存
 -- 功能: 当标记取药票单为已取药时，自动减少药品库存
 -- ============================================
-IF OBJECT_ID('tr_pickup_reduce_stock_3123004721', 'TR') IS NOT NULL
-    DROP TRIGGER tr_pickup_reduce_stock_3123004721;
+DROP TRIGGER IF EXISTS tr_pickup_reduce_stock_3123004721;
 GO
 
 CREATE TRIGGER tr_pickup_reduce_stock_3123004721
@@ -43,8 +42,7 @@ GO
 -- 2. 触发器: 挂号时检查医生是否在岗
 -- 功能: 插入挂号记录前检查医生状态
 -- ============================================
-IF OBJECT_ID('tr_check_doctor_status_3123004721', 'TR') IS NOT NULL
-    DROP TRIGGER tr_check_doctor_status_3123004721;
+DROP TRIGGER IF EXISTS tr_check_doctor_status_3123004721;
 GO
 
 CREATE TRIGGER tr_check_doctor_status_3123004721
@@ -80,8 +78,7 @@ GO
 -- 3. 触发器: 处方药品添加时检查库存
 -- 功能: 插入处方药品前检查库存是否充足
 -- ============================================
-IF OBJECT_ID('tr_check_drug_stock_3123004721', 'TR') IS NOT NULL
-    DROP TRIGGER tr_check_drug_stock_3123004721;
+DROP TRIGGER IF EXISTS tr_check_drug_stock_3123004721;
 GO
 
 CREATE TRIGGER tr_check_drug_stock_3123004721
@@ -129,8 +126,7 @@ GO
 -- 4. 触发器: 更新时间自动维护
 -- 功能: 任何表更新时自动更新update_time字段
 -- ============================================
-IF OBJECT_ID('tr_auto_update_time_patient_3123004721', 'TR') IS NOT NULL
-    DROP TRIGGER tr_auto_update_time_patient_3123004721;
+DROP TRIGGER IF EXISTS tr_auto_update_time_patient_3123004721;
 GO
 
 CREATE TRIGGER tr_auto_update_time_patient_3123004721

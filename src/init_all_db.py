@@ -34,8 +34,7 @@ def run_sql_file(cursor, file_path):
             cursor.execute(cmd)
         except Exception as e:
             # We print but continue, as some might be 'DROP VIEW' which might fail if not exist
-            if "DROP" not in cmd.upper():
-                print(f"Error in {file_path} block {i+1}: {e}")
+            print(f"Warning/Error in {file_path} block {i+1}: {e}")
 
 def init_all():
     try:
