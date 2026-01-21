@@ -448,41 +448,6 @@
     </div>
 </div>
 
-<!-- 同科室医生统计 (自身连接查询示例) -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white pt-3 pb-2 border-bottom-0">
-                <h5 class="fw-bold text-indigo mb-0"><i class="bi bi-people-fill me-2"></i>科室同僚关联 (自身连接示例)</h5>
-            </div>
-            <div class="card-body">
-                {% if colleague_stats %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>医生姓名</th>
-                                <th>所属科室</th>
-                                <th>同科室同事</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in colleague_stats %}
-                            <tr>
-                                <td class="fw-bold text-primary">{{ row[0] }}</td>
-                                <td><span class="badge bg-info-subtle text-info-emphasis">{{ row[1] }}</span></td>
-                                <td class="text-muted">{{ row[2] }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="alert alert-light text-center mb-0">暂无关联数据</div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+
 
 {% endblock %}

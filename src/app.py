@@ -994,15 +994,7 @@ def statistics():
         """)
         popular_drugs = cursor.fetchall()[:10]
         
-        # 自身连接查询示例：查找与该医生同科室的其他在岗医生
-        cursor.execute(f"""
-            SELECT d1.d_name, d1.d_dept, d2.d_name as colleague
-            FROM {T_DOCTOR} d1
-            JOIN {T_DOCTOR} d2 ON d1.d_dept = d2.d_dept AND d1.d_octor_id <> d2.d_octor_id
-            WHERE d1.is_delete = 0 AND d1.is_jobing = 1 
-              AND d2.is_delete = 0 AND d2.is_jobing = 1
-        """)
-        colleague_stats = cursor.fetchall()
+
         
     except Exception as e:
         conn.close()
@@ -1014,8 +1006,7 @@ def statistics():
                            low_stock_drugs=low_stock_drugs,
                            dept_stats=dept_stats,
                            doctor_stats=doctor_stats,
-                           popular_drugs=popular_drugs,
-                           colleague_stats=colleague_stats)
+                           popular_drugs=popular_drugs)
 
 if __name__ == '__main__':
     app.run(debug=True)
